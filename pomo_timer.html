@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pomodoro Timer</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-size: 5em;
+      margin: 0;
+      padding: 0;
+    }
+
+    #soundCheckButton {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #ffffff;
+      color: black;
+      padding: 10px 20px;
+      font-size: 1em;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="pomodoros"></div>
+  <div id="timer" style="font-size: 5em;">00:00</div>
+  
+  <div>会議の録画を忘れない</div>
+
+  <audio id="alarmSound1" src="bell_1.wav"></audio>
+  <audio id="alarmSound2" src="bell_2.wav"></audio>
+  <button id="soundCheckButton" style="font-size: 0.5em;">SoundCheck</button>
+
+  <script>
+    const timerElement = document.getElementById('timer');
+    const pomodorosElement = document.getElementById('pomodoros');
+    const soundCheckButton = document.getElementById('soundCheckButton');
+
+    let pomodoros = 1;
+    let minutes = 25; // Starting minutes
+    let seconds = minutes * 60;
+    let rest = 0;
+    let timer;
+
+    function updateTimer() {
+      const remainingMinutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      timerElement.innerText = `${String(remainingMinutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+      if (rest === 1) {
+        pomodorosElement.innerHTML = `&#x1F345; 休憩中 &#x1F345;`;
+      } else {
+        pomodorosElement.innerHTML = `${pomodoros} &#x1F345;`;
+      }
+    }
+
+    // 作業中は残り時間5分、0分でベル、休憩中は0分でベル
+    function checkAlarm() {
+      // 休憩中かどうか
+      if (seconds === 5 * 60 && rest === 0) {
+      // if (seconds === 1 * 60 && rest === 0) {
+        playAlarmSound(1);
+      // } else if (seconds === 25 * 60) {
+      } else if (seconds === 0) {
+        playAlarmSound(2);
+      }
+    }
+
+    // playAlarmSound(1)で1回ベル、playAlarmSound(2)で2回ベル
+    function playAlarmSound(alarmIndex) {
+      let audioElement;
+      if (alarmIndex === 2) {
+        audioElement = document.getElementById('alarmSound2');
+      } else {
+        audioElement = document.getElementById('alarmSound1');
+      }
+      audioElement.play();
+    }
+
+    function startTimer() {
+      timer = setInterval(() => {
+        seconds--;
+        updateTimer();
+        checkAlarm();
+
+        if (seconds === 0) {
+          // reset timer
+          clearInterval(timer);
+
+          if (pomodoros === 3 && rest === 0) {
+            minutes = 15;
+          } else if (rest === 0) {
+            minutes = 5;
+          } else {
+            minutes = 25
+          }
+
+          seconds = minutes * 60;
+
+          // 休憩中かどうかの切り替え
+          if (rest === 0) {
+            rest = 1;
+          } else {
+            pomodoros++;
+          }
+
+          updateTimer();
+          startTimer();
+        }
+      }, 1000);
+    }
+
+    soundCheckButton.addEventListener('click', () => {
+      playAlarmSound(1);
+    });
+
+    updateTimer();
+    startTimer();
+  </script>
+</body>
+</html>
